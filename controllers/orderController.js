@@ -61,5 +61,38 @@ const createOrder = async (req, res) => {
     }
 }
 
+const getOrders = async(req, res) => {
+    const user_id = req.user;
+    try {
+        const orders = await Order.find({ user_id }, { cust_Name: 0, cust_Address: 0, cust_PhNO: 0 });
+        const ordersWithProductDetails = await Promise.all(orders.map(async (order) => {
+            const productsWithDetails = await Promise.all(order.products.map(async (product) => {
+                const productInfo = await Product.findOne({ id: product.product_id });
+                if (!productInfo) {
+                    return null;
+                }
+                return {
+                    product_id: product.product_id,
+                    quantity: product.quantity,
+                    title: productInfo.title,
+                    description: productInfo.description,
+                    image: productInfo.image,
+                    price: productInfo.price
+                };
+            }));
+            return {
+                Orderid: order.id,
+                products: productsWithDetails,
+                totalAmount: order.totalAmount,
+                orderDate: order.orderDate,
+                est_DeliveryDate: order.est_DeliveryDate
+            };
+        }));
+        res.send(ordersWithProductDetails);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+}
 
-module.exports = { createOrder };
+
+module.exports = { createOrder , getOrders };
