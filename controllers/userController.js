@@ -1,6 +1,14 @@
 const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cors = require("cors");
+const express = require('express');
+const app = express();
+
+
+
+app.use(cors());
+
 
 const JWT_SECRET = process.env.JWT
 
